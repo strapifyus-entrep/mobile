@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Poly3D",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.johan.poly3d",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Poly3D se conecta al servidor de procesamiento en tu PC dentro de la red local.",
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Poly3D necesita la camara para fotografiar el objeto que vas a escanear.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Poly3D necesita acceder a tus fotos para elegir imagenes del objeto."
+        }
+      ],
+      "expo-status-bar"
+    ]
+  }
+}

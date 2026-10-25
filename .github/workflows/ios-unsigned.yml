@@ -1,0 +1,71 @@
+name: iOS unsigned IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Runner macOS (cambiar a xcode-27 si el build falla por version de Xcode)
+        type: choice
+        default: macos-26
+        options:
+          - macos-26
+          - xcode-27
+      configuration:
+        description: Debug = dev client (carga el JS desde Metro en tu PC). Release = JS embebido.
+        type: choice
+        default: Debug
+        options:
+          - Debug
+          - Release
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias JS
+        run: npm ci
+
+      - name: Generar proyecto iOS (prebuild + pods)
+        run: npx expo prebuild --platform ios
+
+      - name: Compilar sin firmar
+        working-directory: ios
+        run: |
+          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
+          SCHEME="${WORKSPACE%.xcworkspace}"
+          echo "Workspace: $WORKSPACE  Scheme: $SCHEME"
+          xcodebuild \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration "${{ inputs.configuration }}" \
+            -sdk iphoneos \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: Empaquetar IPA sin firmar
+        working-directory: ios
+        run: |
+          APP=$(find build/Build/Products -maxdepth 2 -name "*.app" -type d | head -n 1)
+          echo "App: $APP"
+          rm -rf Payload && mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry Poly3D-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Poly3D-unsigned-ipa
+          path: ios/Poly3D-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 7
